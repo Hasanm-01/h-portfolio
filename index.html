@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>H • Portfolio</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <header>
+    <h1>H</h1>
+    <p>Cloud & Full-Stack • AWS • React • Flutter</p>
+    <nav>
+      <a href="https://github.com/<YOUR_USERNAME>">GitHub</a>
+      <a href="https://www.linkedin.com/in/<YOUR_LINKEDIN>">LinkedIn</a>
+      <a href="mailto:<YOUR_EMAIL>">Email</a>
+    </nav>
+  </header>
+
+  <section id="projects"><h2>Projects</h2><div id="grid"></div></section>
+
+  <footer><small>© 2025 H • Built with GitHub Pages</small></footer>
+
+  <script>
+    const username = "<YOUR_USERNAME>";
+    const pinned = [
+      // Option A: hardcode your top repos for stable order
+      "salah-catchup",
+      "rightio-live-dashboard",
+      "personal-portfolio",
+      // or leave empty to show by stars below
+    ];
+
+    async function getRepos() {
+      const res = await fetch(`https://api.github.com/users/${username}/repos?per_page=100`);
+      let repos = await res.json();
+
+      // Filter forks/archived, sort by stargazers
+      repos = repos
+        .filter(r => !r.fork && !r.archived)
+        .sort((a,b) => b.stargazers_count - a.stargazers_count);
+
+      if (pinned.length) {
+        const map = new Map(repos.map(r => [r.name, r]));
+        repos = pinned.map(n => map.get(n)).filter(Boolean);
+      }
+
+      const grid = document.getElementById("grid");
+      repos.slice(0,12).forEach(r => {
+        const topicsPromise = fetch(`https://api.github.com/repos/${username}/${r.name}/topics`, {
+          headers: { Accept: "application/vnd.github.mercy-preview+json" }
+        }).then(t => t.json()).catch(()=>({names:[]}));
+
+        topicsPromise.then(({names=[]})=>{
+          const el = document.createElement("a");
+          el.className = "card";
+          el.href = r.homepage || r.html_url;
+          el.target = "_blank";
+          el.rel = "noopener";
+          el.innerHTML = `
+            <h3>${r.name}</h3>
+            <p>${r.description ?? ""}</p>
+            <div class="meta">
+              <span>★ ${r.stargazers_count}</span>
+              <span>↑ ${r.language ?? "—"}</span>
+            </div>
+            <div class="topics">
+              ${names.slice(0,5).map(t=>`<span>${t}</span>`).join("")}
+            </div>
+          `;
+          grid.appendChild(el);
+        });
+      });
+    }
+    getRepos();
+  </script>
+</body>
+</html>
