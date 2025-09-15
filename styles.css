@@ -1,0 +1,15 @@
+:root{--w:1100px}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5;background:#0b0e14;color:#eaeefb}
+header,section,footer{max-width:var(--w);margin:0 auto;padding:24px}
+header{padding-top:48px}
+h1{font-size:40px;margin:0 0 8px}
+nav a{margin-right:12px;color:#a0c2ff;text-decoration:none}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:16px}
+.card{display:block;padding:16px;border-radius:14px;background:#121826;border:1px solid #1c2433;text-decoration:none;color:inherit;transition:transform .1s ease,border-color .2s}
+.card:hover{transform:translateY(-2px);border-color:#3b82f6}
+.card h3{margin:0 0 8px;font-size:18px}
+.card p{margin:0 0 12px;color:#c9d5ee;min-height:44px}
+.meta{display:flex;gap:12px;color:#98a5c0;font-size:13px;margin-bottom:8px}
+.topics span{display:inline-block;background:#1b2333;border:1px solid #283349;border-radius:999px;padding:2px 8px;margin:2px;font-size:12px;color:#9fb4ff}
+footer{opacity:.7;text-align:center;padding-bottom:48px}
