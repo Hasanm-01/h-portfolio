@@ -12,79 +12,67 @@
     <p>Cloud & Full-Stack • AWS • React • Flutter</p>
     <nav>
       <a href="https://github.com/Hasanm-01">GitHub</a>
-      <a href="www.linkedin.com/in/hasan-malik-299554190">LinkedIn</a>
+      <a href="https://www.linkedin.com/in/YOUR_LINKEDIN">LinkedIn</a>
       <a href="mailto:Hasan_1001@live.com">Email</a>
     </nav>
   </header>
 
-  <section id="projects"><h2>Projects</h2><div id="grid"></div></section>
+  <section id="projects">
+    <h2>Projects</h2>
+    <div id="grid">
+      <!-- Static cards (always visible) -->
+      <a class="card" href="https://github.com/Hasanm-01/serverless-task-tracker" target="_blank" rel="noopener">
+        <h3>serverless-task-tracker</h3>
+        <p>AWS SAM • Lambda • API Gateway • DynamoDB CRUD API</p>
+        <div class="meta"><span>API</span><span>Node.js</span></div>
+        <div class="topics"></div>
+      </a>
+
+      <a class="card" href="https://hasanm-01.github.io/task-tracker-web/" target="_blank" rel="noopener">
+        <h3>task-tracker-web</h3>
+        <p>Minimal HTML/CSS/JS front-end calling the serverless API</p>
+        <div class="meta"><span>Web</span><span>JS</span></div>
+        <div class="topics"></div>
+      </a>
+
+      <!-- Add this when ready (safe to leave in now) -->
+      <a class="card" href="https://github.com/Hasanm-01/data-dashboard-flask" target="_blank" rel="noopener">
+        <h3>data-dashboard-flask</h3>
+        <p>Flask + Pandas + Docker — CSV upload → summary + chart</p>
+        <div class="meta"><span>Python</span><span>Flask</span></div>
+        <div class="topics"></div>
+      </a>
+    </div>
+  </section>
+
   <footer><small>© 2025 H • Built with GitHub Pages</small></footer>
 
+  <!-- Optional enhancement: try to pull stars/language from GitHub -->
   <script>
-  const username = "Hasanm-01";
-  const pinned = [
-    "serverless-task-tracker",
-    "task-tracker-web",
-    // add "data-dashboard-flask" after you create it,
-    // or keep it here if you want a link placeholder
-  ];
+    const username = "Hasanm-01";
+    const repoNames = ["serverless-task-tracker","task-tracker-web","data-dashboard-flask"];
 
-  const grid = document.getElementById("grid");
+    (async function enhance(){
+      try {
+        const res = await fetch(`https://api.github.com/users/${username}/repos?per_page=100`, {
+          headers: { "Accept": "application/vnd.github+json" }
+        });
+        const repos = Array.isArray(await res.json()) ? await res.json() : [];
+        const map = new Map(repos.map(r => [r.name, r]));
 
-  const addCard = (r, topics = []) => {
-    const a = document.createElement("a");
-    a.className = "card";
-    a.href = r.homepage || r.html_url || `https://github.com/${username}/${r.name}`;
-    a.target = "_blank";
-    a.rel = "noopener";
-    a.innerHTML = `
-      <h3>${r.name}</h3>
-      <p>${r.description ?? ""}</p>
-      <div class="meta">
-        <span>★ ${r.stargazers_count ?? 0}</span>
-        <span>${r.language ?? "—"}</span>
-      </div>
-      <div class="topics">${(topics||[]).slice(0,5).map(t=>`<span>${t}</span>`).join("")}</div>
-    `;
-    grid.appendChild(a);
-  };
-
-  async function load() {
-    try {
-      const res = await fetch(`https://api.github.com/users/${username}/repos?per_page=100`, {
-        headers: { "Accept": "application/vnd.github+json" }
-      });
-      let repos = await res.json();
-      if (!Array.isArray(repos)) throw new Error((repos && repos.message) || "Unexpected response");
-
-      repos = repos.filter(r => !r.fork && !r.archived);
-      const map = new Map(repos.map(r => [r.name, r]));
-      const ordered = pinned.map(n => map.get(n)).filter(Boolean);
-
-      for (const r of ordered.slice(0, 12)) {
-        let topics = [];
-        try {
-          const t = await fetch(`https://api.github.com/repos/${username}/${r.name}/topics`, {
-            headers: { "Accept": "application/vnd.github+json" }
-          }).then(x => x.json());
-          topics = (t && t.names) ? t.names : [];
-        } catch {}
-        addCard(r, topics);
+        // update the meta lines on existing static cards
+        document.querySelectorAll("#grid .card").forEach(card => {
+          const name = card.querySelector("h3")?.textContent?.trim();
+          const r = map.get(name);
+          if (!r) return;
+          const meta = card.querySelector(".meta");
+          if (meta) meta.innerHTML = `<span>★ ${r.stargazers_count ?? 0}</span><span>${r.language ?? "—"}</span>`;
+        });
+      } catch (e) {
+        // If API fails, we already have static cards — do nothing.
+        console.warn("GitHub enhance skipped:", e);
       }
-
-      // If nothing rendered (rate limit / error / names mismatch), show fallback links
-      if (grid.children.length === 0) {
-        pinned.forEach(name => addCard({ name, html_url: `https://github.com/${username}/${name}` }));
-      }
-    } catch (e) {
-      // Full fallback
-      pinned.forEach(name => addCard({ name, html_url: `https://github.com/${username}/${name}` }));
-      console.warn("GitHub API failed, showing fallback cards:", e);
-    }
-  }
-
-  load();
-</script>
-
+    })();
+  </script>
 </body>
 </html>
