@@ -11,67 +11,73 @@
     <h1>H</h1>
     <p>Cloud & Full-Stack • AWS • React • Flutter</p>
     <nav>
-      <a href="https://github.com/<YOUR_USERNAME>">GitHub</a>
-      <a href="https://www.linkedin.com/in/<YOUR_LINKEDIN>">LinkedIn</a>
-      <a href="mailto:<YOUR_EMAIL>">Email</a>
+      <a href="https://github.com/Hasanm-01">GitHub</a>
+      <a href="www.linkedin.com/in/hasan-malik-299554190">LinkedIn</a>
+      <a href="mailto:Hasan_1001@live.com">Email</a>
     </nav>
   </header>
 
   <section id="projects"><h2>Projects</h2><div id="grid"></div></section>
-
   <footer><small>© 2025 H • Built with GitHub Pages</small></footer>
 
   <script>
-    const username = "<YOUR_USERNAME>";
+    const username = "Hasanm-01";
+
+    // Pin exact repos (stable order). Any that don't exist yet are skipped.
     const pinned = [
-      // Option A: hardcode your top repos for stable order
-      "salah-catchup",
-      "rightio-live-dashboard",
-      "personal-portfolio",
-      // or leave empty to show by stars below
+      "serverless-task-tracker",
+      "task-tracker-web",
+      "data-dashboard-flask"
     ];
 
     async function getRepos() {
-      const res = await fetch(`https://api.github.com/users/${username}/repos?per_page=100`);
+      const res = await fetch(`https://api.github.com/users/${username}/repos?per_page=100`, {
+        headers: { "Accept": "application/vnd.github+json" }
+      });
       let repos = await res.json();
 
-      // Filter forks/archived, sort by stargazers
-      repos = repos
-        .filter(r => !r.fork && !r.archived)
-        .sort((a,b) => b.stargazers_count - a.stargazers_count);
+      // Filter forks/archived
+      repos = Array.isArray(repos) ? repos.filter(r => !r.fork && !r.archived) : [];
 
+      // If pinned list provided, map in that order; otherwise sort by stars
       if (pinned.length) {
         const map = new Map(repos.map(r => [r.name, r]));
         repos = pinned.map(n => map.get(n)).filter(Boolean);
+      } else {
+        repos.sort((a,b) => b.stargazers_count - a.stargazers_count);
       }
 
       const grid = document.getElementById("grid");
-      repos.slice(0,12).forEach(r => {
-        const topicsPromise = fetch(`https://api.github.com/repos/${username}/${r.name}/topics`, {
-          headers: { Accept: "application/vnd.github.mercy-preview+json" }
-        }).then(t => t.json()).catch(()=>({names:[]}));
 
-        topicsPromise.then(({names=[]})=>{
-          const el = document.createElement("a");
-          el.className = "card";
-          el.href = r.homepage || r.html_url;
-          el.target = "_blank";
-          el.rel = "noopener";
-          el.innerHTML = `
-            <h3>${r.name}</h3>
-            <p>${r.description ?? ""}</p>
-            <div class="meta">
-              <span>★ ${r.stargazers_count}</span>
-              <span>↑ ${r.language ?? "—"}</span>
-            </div>
-            <div class="topics">
-              ${names.slice(0,5).map(t=>`<span>${t}</span>`).join("")}
-            </div>
-          `;
-          grid.appendChild(el);
-        });
-      });
+      // Render cards
+      for (const r of repos.slice(0, 12)) {
+        // Try to fetch topics (optional)
+        let topics = [];
+        try {
+          const t = await fetch(`https://api.github.com/repos/${username}/${r.name}/topics`, {
+            headers: { "Accept": "application/vnd.github+json" }
+          }).then(x => x.json());
+          topics = (t && t.names) ? t.names : [];
+        } catch {}
+
+        const el = document.createElement("a");
+        el.className = "card";
+        el.href = r.homepage || r.html_url;
+        el.target = "_blank";
+        el.rel = "noopener";
+        el.innerHTML = `
+          <h3>${r.name}</h3>
+          <p>${r.description ?? ""}</p>
+          <div class="meta">
+            <span>★ ${r.stargazers_count}</span>
+            <span>${r.language ?? "—"}</span>
+          </div>
+          <div class="topics">${topics.slice(0,5).map(t=>`<span>${t}</span>`).join("")}</div>
+        `;
+        grid.appendChild(el);
+      }
     }
+
     getRepos();
   </script>
 </body>
