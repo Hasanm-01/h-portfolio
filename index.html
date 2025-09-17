@@ -21,37 +21,47 @@
   <footer><small>© 2025 H • Built with GitHub Pages</small></footer>
 
   <script>
-    const username = "Hasanm-01";
+  const username = "Hasanm-01";
+  const pinned = [
+    "serverless-task-tracker",
+    "task-tracker-web",
+    // add "data-dashboard-flask" after you create it,
+    // or keep it here if you want a link placeholder
+  ];
 
-    // Pin exact repos (stable order). Any that don't exist yet are skipped.
-    const pinned = [
-      "serverless-task-tracker",
-      "task-tracker-web",
-      "data-dashboard-flask"
-    ];
+  const grid = document.getElementById("grid");
 
-    async function getRepos() {
+  const addCard = (r, topics = []) => {
+    const a = document.createElement("a");
+    a.className = "card";
+    a.href = r.homepage || r.html_url || `https://github.com/${username}/${r.name}`;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.innerHTML = `
+      <h3>${r.name}</h3>
+      <p>${r.description ?? ""}</p>
+      <div class="meta">
+        <span>★ ${r.stargazers_count ?? 0}</span>
+        <span>${r.language ?? "—"}</span>
+      </div>
+      <div class="topics">${(topics||[]).slice(0,5).map(t=>`<span>${t}</span>`).join("")}</div>
+    `;
+    grid.appendChild(a);
+  };
+
+  async function load() {
+    try {
       const res = await fetch(`https://api.github.com/users/${username}/repos?per_page=100`, {
         headers: { "Accept": "application/vnd.github+json" }
       });
       let repos = await res.json();
+      if (!Array.isArray(repos)) throw new Error((repos && repos.message) || "Unexpected response");
 
-      // Filter forks/archived
-      repos = Array.isArray(repos) ? repos.filter(r => !r.fork && !r.archived) : [];
+      repos = repos.filter(r => !r.fork && !r.archived);
+      const map = new Map(repos.map(r => [r.name, r]));
+      const ordered = pinned.map(n => map.get(n)).filter(Boolean);
 
-      // If pinned list provided, map in that order; otherwise sort by stars
-      if (pinned.length) {
-        const map = new Map(repos.map(r => [r.name, r]));
-        repos = pinned.map(n => map.get(n)).filter(Boolean);
-      } else {
-        repos.sort((a,b) => b.stargazers_count - a.stargazers_count);
-      }
-
-      const grid = document.getElementById("grid");
-
-      // Render cards
-      for (const r of repos.slice(0, 12)) {
-        // Try to fetch topics (optional)
+      for (const r of ordered.slice(0, 12)) {
         let topics = [];
         try {
           const t = await fetch(`https://api.github.com/repos/${username}/${r.name}/topics`, {
@@ -59,26 +69,22 @@
           }).then(x => x.json());
           topics = (t && t.names) ? t.names : [];
         } catch {}
-
-        const el = document.createElement("a");
-        el.className = "card";
-        el.href = r.homepage || r.html_url;
-        el.target = "_blank";
-        el.rel = "noopener";
-        el.innerHTML = `
-          <h3>${r.name}</h3>
-          <p>${r.description ?? ""}</p>
-          <div class="meta">
-            <span>★ ${r.stargazers_count}</span>
-            <span>${r.language ?? "—"}</span>
-          </div>
-          <div class="topics">${topics.slice(0,5).map(t=>`<span>${t}</span>`).join("")}</div>
-        `;
-        grid.appendChild(el);
+        addCard(r, topics);
       }
-    }
 
-    getRepos();
-  </script>
+      // If nothing rendered (rate limit / error / names mismatch), show fallback links
+      if (grid.children.length === 0) {
+        pinned.forEach(name => addCard({ name, html_url: `https://github.com/${username}/${name}` }));
+      }
+    } catch (e) {
+      // Full fallback
+      pinned.forEach(name => addCard({ name, html_url: `https://github.com/${username}/${name}` }));
+      console.warn("GitHub API failed, showing fallback cards:", e);
+    }
+  }
+
+  load();
+</script>
+
 </body>
 </html>
