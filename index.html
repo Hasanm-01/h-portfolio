@@ -11,12 +11,10 @@
     <h1>H</h1>
     <p>Cloud & Full-Stack • AWS • React • Flutter</p>
     <nav>
-  <a href="https://github.com/Hasanm-01" target="_blank" rel="noopener noreferrer">GitHub</a>
-  <a href="https://www.linkedin.com/in/hasan-malik-299554190" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-  <a href="mailto:Hasan_1001@live.com">Email</a>
-</nav>
-
-
+      <a href="https://github.com/Hasanm-01" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.linkedin.com/in/hasan-malik-299554190" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="mailto:Hasan_1001@live.com">Email</a>
+    </nav>
   </header>
 
   <section id="projects">
@@ -33,14 +31,13 @@
       <a class="card" href="https://hasanm-01.github.io/task-tracker-web/" target="_blank" rel="noopener">
         <h3>task-tracker-web</h3>
         <p>Minimal HTML/CSS/JS front-end calling the serverless API</p>
-        <div class="meta"><span>Web</span><span>JS</span></div>
+        <div class="meta"><span>Web</span><span>JavaScript</span></div>
         <div class="topics"></div>
       </a>
 
-      <!-- Add this when ready (safe to leave in now) -->
-      <a class="card" href="https://github.com/Hasanm-01/data-dashboard-flask" target="_blank" rel="noopener">
+      <a class="card" href="https://data-dashboard-flask.onrender.com/" target="_blank" rel="noopener">
         <h3>data-dashboard-flask</h3>
-        <p>Flask + Pandas + Docker — CSV upload → summary + chart</p>
+        <p>Flask + Pandas — CSV upload → summary + chart (Live demo)</p>
         <div class="meta"><span>Python</span><span>Flask</span></div>
         <div class="topics"></div>
       </a>
@@ -49,31 +46,27 @@
 
   <footer><small>© 2025 H • Built with GitHub Pages</small></footer>
 
-  <!-- Optional enhancement: try to pull stars/language from GitHub -->
+  <!-- Optional: enhance static cards with stars/language when GitHub API is reachable -->
   <script>
     const username = "Hasanm-01";
-    const repoNames = ["serverless-task-tracker","task-tracker-web","data-dashboard-flask"];
+    const names = ["serverless-task-tracker","task-tracker-web","data-dashboard-flask"];
 
-    (async function enhance(){
+    (async () => {
       try {
         const res = await fetch(`https://api.github.com/users/${username}/repos?per_page=100`, {
           headers: { "Accept": "application/vnd.github+json" }
         });
-        const repos = Array.isArray(await res.json()) ? await res.json() : [];
-        const map = new Map(repos.map(r => [r.name, r]));
-
-        // update the meta lines on existing static cards
+        const list = await res.json();
+        if (!Array.isArray(list)) return;
+        const byName = new Map(list.map(r => [r.name, r]));
         document.querySelectorAll("#grid .card").forEach(card => {
           const name = card.querySelector("h3")?.textContent?.trim();
-          const r = map.get(name);
+          const r = byName.get(name);
           if (!r) return;
           const meta = card.querySelector(".meta");
           if (meta) meta.innerHTML = `<span>★ ${r.stargazers_count ?? 0}</span><span>${r.language ?? "—"}</span>`;
         });
-      } catch (e) {
-        // If API fails, we already have static cards — do nothing.
-        console.warn("GitHub enhance skipped:", e);
-      }
+      } catch {}
     })();
   </script>
 </body>
